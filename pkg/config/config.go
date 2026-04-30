@@ -11,8 +11,8 @@ import (
 )
 
 type RetryConfig struct {
-	Max   int           `mapstructure:"max" validate:"required"`
-	Delay time.Duration `mapstructure:"delay" validate:"required"`
+	Max   int           `validate:"required"`
+	Delay time.Duration `validate:"required"`
 }
 
 type Config struct {
