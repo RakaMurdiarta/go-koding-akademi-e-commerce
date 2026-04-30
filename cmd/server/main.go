@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/RakaMurdiarta/go-koding-akademi-e-commerce/pkg/bootstrapper"
 	"github.com/RakaMurdiarta/go-koding-akademi-e-commerce/pkg/config"
 	"github.com/RakaMurdiarta/go-koding-akademi-e-commerce/pkg/database"
 	"github.com/RakaMurdiarta/go-koding-akademi-e-commerce/pkg/logger"
@@ -53,7 +54,7 @@ func main() {
 		},
 	}
 
-	_, err = dbConfig.InitConnectionDB(ctx, cfg)
+	db, err := dbConfig.InitConnectionDB(ctx, cfg)
 
 	if err != nil {
 		log.Fatal(ctx, fmt.Sprintf("[DB] Database Connection Failed ,%v", err))
@@ -61,6 +62,10 @@ func main() {
 	}
 
 	echo := echo.New()
+
+	apiServer := bootstrapper.NewServer(echo, cfg, db)
+
+	apiServer.InitAPI()
 
 	listen := net.JoinHostPort(cfg.AppHost, cfg.AppPort)
 
