@@ -19,7 +19,7 @@ BEGIN
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role_enum') THEN
-        CREATE TYPE user_role_enum AS ENUM ('buyer', 'seller', 'admin');
+        CREATE TYPE user_role_enum AS ENUM ('guest', 'admin');
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'provider_enum') THEN
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password TEXT, -- NULL jika login via OAuth
     full_name VARCHAR(100),
-    role user_role_enum DEFAULT 'buyer',
+    role user_role_enum DEFAULT 'guest',
     provider provider_enum DEFAULT 'local',
     provider_id VARCHAR(255),
     avatar_url TEXT,

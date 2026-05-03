@@ -3,9 +3,8 @@ package common
 type UserRole string
 
 const (
-	RoleBuyer  UserRole = "buyer"
-	RoleSeller UserRole = "seller"
-	RoleAdmin  UserRole = "admin"
+	RoleGuest UserRole = "guest"
+	RoleAdmin UserRole = "admin"
 )
 
 type Provider string

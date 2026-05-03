@@ -6,14 +6,14 @@ import (
 )
 
 type SingUpRequest struct {
-	FullName string `json:"full_name" validate:"required"`
+	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"min=8"`
 }
 
 func (s *SingUpRequest) ToDomain(hashPass *string, role common.UserRole, provider common.Provider) *models.User {
 	return &models.User{
-		FullName: s.FullName,
+		FullName: s.Name,
 		Email:    s.Email,
 		Password: hashPass,
 		Role:     role,

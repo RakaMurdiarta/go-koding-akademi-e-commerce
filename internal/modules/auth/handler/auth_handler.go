@@ -47,12 +47,12 @@ func (a *authHandler) SignUpLocal(c *echo.Context) error {
 
 	}
 
-	if err := a.as.RegisterLocal(c.Request().Context(), req); err != nil {
+	res, err := a.as.RegisterLocal(c.Request().Context(), req)
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, response.NewResponseError(err.Error(), *customs.NewErrorValue("bussines_logic", err.Error())))
-
 	}
 
-	return c.JSON(http.StatusCreated, response.NewResponseSuccess(req.Email, "Account Created"))
+	return c.JSON(http.StatusCreated, response.NewResponseSuccess(res, "Account Created"))
 }
 
 func (a *authHandler) Login(c *echo.Context) error {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/RakaMurdiarta/go-koding-akademi-e-commerce/internal/models"
 	"github.com/RakaMurdiarta/go-koding-akademi-e-commerce/internal/modules/auth/delivery"
@@ -31,8 +32,8 @@ func NewAuthService(userRepo repository.UserRepository, conf *config.Config,
 }
 
 // LoginLocal implements [services.AuthService].
-func (s *authServiceImpl) LoginLocal(ctx context.Context, req *delivery.LoginRequest) (*delivery.AuthResponse, error) {
-	var resp delivery.AuthResponse
+func (s *authServiceImpl) LoginLocal(ctx context.Context, req *delivery.LoginRequest) (*delivery.LoginResponse, error) {
+	var resp delivery.LoginResponse
 
 	err := s.userRepo.WithTransaction(ctx, func(tx context.Context) error {
 		user, err := s.userRepo.GetUserByEmail(ctx, req.Email)
@@ -69,9 +70,11 @@ func (s *authServiceImpl) LoginLocal(ctx context.Context, req *delivery.LoginReq
 			return err
 		}
 
-		resp.AccessToken = token
-		resp.Role = user.Role
-		resp.RefreshToken = tokenRefresh
+		resp.User.ID = fmt.Sprintf("%d", user.ID)
+		resp.User.Role = string(user.Role)
+		resp.User.Email = user.Email
+		resp.User.Name = user.FullName
+		resp.Token = token
 
 		return nil
 	})
@@ -84,29 +87,40 @@ func (s *authServiceImpl) LoginLocal(ctx context.Context, req *delivery.LoginReq
 }
 
 // RegisterLocal implements [services.AuthService].
-func (s *authServiceImpl) RegisterLocal(ctx context.Context, req *delivery.SingUpRequest) error {
+func (s *authServiceImpl) RegisterLocal(ctx context.Context, req *delivery.SingUpRequest) (*delivery.RegisterResponse, error) {
 	existingUser, err := s.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if existingUser != nil {
-		return errors.New("user Already Registered")
+		return nil, errors.New("user Already Registered")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return errors.New("password Hash Error")
+		return nil, errors.New("password Hash Error")
 	}
 	passStr := string(hashedPassword)
 
-	userDomain := req.ToDomain(&passStr, common.RoleBuyer, common.ProviderLocal)
+	userDomain := req.ToDomain(&passStr, common.RoleGuest, common.ProviderLocal)
 
 	if err := s.userRepo.CreateUser(ctx, userDomain); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	user := delivery.UserRegister{
+		ID:        fmt.Sprintf("%d", userDomain.ID),
+		Email:     userDomain.Email,
+		Name:      userDomain.FullName,
+		Role:      string(userDomain.Role),
+		CreatedAt: userDomain.CreatedAt.Format(time.RFC3339),
+	}
+
+	return &delivery.RegisterResponse{
+		User:  user,
+		Token: "",
+	}, nil
 }
 
 func (s *authServiceImpl) HandleOAuthCallback(ctx context.Context, data *delivery.OAuthUserRequest) (*models.User, error) {
